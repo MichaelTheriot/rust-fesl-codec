@@ -1,0 +1,9 @@
+[package]
+name = "fesl_codec"
+version = "0.1.0"
+authors = ["Michael Theriot <michael.lee.theriot@gmail.com>"]
+
+[dependencies]
+byteorder = "1"
+enum-primitive-derive = "^0.1"
+num-traits = "^0.1"
