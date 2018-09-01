@@ -1,8 +1,7 @@
 extern crate byteorder;
 
 use std::str;
-use std::io::Error;
-use std::io::Read;
+use std::io::{Read, Error};
 use std::result::Result;
 use self::byteorder::{ByteOrder, BigEndian, WriteBytesExt};
 use num_traits::{FromPrimitive};
@@ -105,7 +104,7 @@ impl <'a> FeslMessageIterator<'a> {
 }
 
 impl <'a> Iterator for FeslMessageIterator<'a> {
-    type Item = Result<(&'a str, &'a str), FeslMessageError>;
+    type Item = FeslMessageResult<(&'a str, &'a str)>;
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.src.len() {
@@ -130,8 +129,6 @@ impl <'a> IntoIterator for &'a FeslMessage {
     }
 }
 
-type FeslMessageBuilderResult<'a> = FeslMessageResult<FeslMessageBuilder<'a>>;
-
 #[derive(Debug)]
 pub struct FeslMessageBuilder<'a> {
     cmd: &'a str,
@@ -141,16 +138,16 @@ pub struct FeslMessageBuilder<'a> {
 }
 
 impl <'a> FeslMessageBuilder<'a> {
-    pub fn new(cmd: &'a str, fesl_type: FeslMessageType, id: u32) -> FeslMessageBuilderResult<'a> {
+    pub fn new(cmd: &'a str, fesl_type: FeslMessageType, id: u32) -> FeslMessageBuilder<'a> {
         if cmd.len() != 4 {
-            return Err(FeslMessageError::InvalidCommandLength);
+            panic!("FeslMessageBuilder cmd must be a 4 character string");
         }
-        Ok(FeslMessageBuilder {
+        FeslMessageBuilder {
             cmd,
             type_and_id: (((fesl_type as u32) & 0xf0) << 24) | (id & 0xfffffff),
             len: 13,
             buf: Vec::new()
-        })
+        }
     }
 
     pub fn push(&mut self, key: &'a str, value: &'a str) {
@@ -170,7 +167,8 @@ impl <'a> FeslMessageBuilder<'a> {
             buf.push(b'\n');
         }
         buf.push(0x00);
-        let data = buf.into_boxed_slice();
-        FeslMessage {data}
+        FeslMessage {
+            data: buf.into_boxed_slice()
+        }
     }
 }
