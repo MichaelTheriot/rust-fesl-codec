@@ -20,7 +20,7 @@ pub enum FeslMessageError {
     ExpectedDelimiter,
     ExpectedUtf8(str::Utf8Error),
     InvalidCommandLength,
-    InvalidType
+    InvalidType(u8)
 }
 
 impl From<str::Utf8Error> for FeslMessageError {
@@ -57,7 +57,7 @@ impl FeslMessage {
 
     pub fn get_type(&self) -> FeslMessageResult<FeslMessageType> {
         let val = self.data[4] & 0xf0;
-        FeslMessageType::from_u8(val).ok_or_else(|| FeslMessageError::InvalidType)
+        FeslMessageType::from_u8(val).ok_or_else(|| FeslMessageError::InvalidType(val))
     }
 
     pub fn get_id(&self) -> u32 {
